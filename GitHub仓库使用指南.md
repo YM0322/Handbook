@@ -41,7 +41,7 @@
 
 ### 方法二：从本地项目创建
 
-如果你已经有一个本地项目，可以将其推送到GitHub：
+如果已经有一个本地项目，可以将其推送到GitHub：
 
 ```bash
 # 1. 在本地项目目录初始化Git
@@ -87,6 +87,96 @@ git commit -m "首次提交"
 # 7. 推送到GitHub（首次推送）
 git push -u origin main
 ```
+
+### 将本地项目推送到远程“新分支”（不影响其他分支）
+
+> 适用场景：远程仓库已经存在（且可能已有 `main`、`develop` 等分支），有一个**本地项目**，想把它推到这个仓库里的**一个新分支**（远程还没创建），并且**不动其他已有分支的内容**。
+
+#### 情况一：本地还没有任何Git记录（全新项目）
+
+```bash
+# 1. 进入本地项目目录
+cd /path/to/your/project
+
+# 2. 初始化Git仓库（如果还没有）
+git init
+
+# 3. 关联远程仓库（HTTPS示例，SSH同理）
+git remote add origin https://github.com/你的用户名/仓库名.git
+# 或使用SSH：
+# git remote add origin git@github.com:你的用户名/仓库名.git
+
+# 4. 创建一个本地新分支（将来对应远程的新分支）
+git switch -c feature/your-branch-name
+# 旧语法：
+# git checkout -b feature/your-branch-name
+
+# 5. 将当前项目所有文件加入暂存区
+git add .
+
+# 6. 提交到本地该新分支
+git commit -m "将本地项目初始化到新分支"
+
+# 7. 推送到远程的新分支（远程此分支会自动创建）
+git push -u origin feature/your-branch-name
+```
+
+> ✅ 这样做的结果：  
+> - 远程仓库会新增一个 `feature/your-branch-name` 分支  
+> - **远程其他分支（如 `main`、`develop`）完全不受影响**  
+> - 以后你在本地该分支上继续开发，再 `git push` 即可
+
+#### 情况二：本地已经有提交，但还没推到任何远程
+
+```bash
+# 1. 确认当前在你想要推送的本地分支上
+git branch
+# 如果当前不在目标分支，先切换
+git switch 你的本地分支名
+# 或：git checkout 你的本地分支名
+
+# 2. 关联远程仓库（如果还没关联）
+git remote add origin https://github.com/你的用户名/仓库名.git
+# 或：git remote add origin git@github.com:你的用户名/仓库名.git
+
+# 3. 将本地分支推送到远程一个“新分支”名上
+git push -u origin 你的本地分支名:远程新分支名
+# 示例：
+# git push -u origin main:feature/your-branch-name
+```
+
+> ✅ 这样做的结果：  
+> - 远程会新建 `feature/your-branch-name` 分支，内容来自你当前本地分支  
+> - 远程原来的 `main`、`develop` 等分支不会被覆盖  
+> - 以后在本地该分支上直接 `git push` 即可
+
+#### 情况三：本地当前分支名就想直接作为远程分支名
+
+```bash
+# 本地在 feature/your-branch-name 分支上
+git push -u origin feature/your-branch-name
+```
+
+> 等价于：把当前分支推送到远程同名的新分支。远程没有这个分支时会自动创建。
+
+#### 小贴士：如何确认不会影响远程已有分支？
+
+```bash
+# 查看远程分支情况
+git remote show origin
+
+# 或查看所有分支（本地+远程）
+git branch -a
+```
+
+只要你**没有执行**类似：
+
+```bash
+git push -u origin main
+git push -u origin main:main
+```
+
+就不会修改远程已有的 `main` 分支内容。推送时注意**冒号右边的远程分支名**即可。
 
 ### 使用SSH密钥（推荐，更安全）
 
