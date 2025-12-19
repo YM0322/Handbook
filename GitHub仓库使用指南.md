@@ -115,6 +115,233 @@ pbcopy < ~/.ssh/id_ed25519.pub
 git remote set-url origin git@github.com:你的用户名/仓库名.git
 ```
 
+### SSH密钥故障排除
+
+#### 问题：`Permission denied (publickey)` 错误
+
+当你看到以下错误时：
+```
+git@github.com: Permission denied (publickey).
+fatal: Could not read from remote repository.
+```
+
+这表示 SSH 密钥配置有问题。按以下步骤排查：
+
+#### 步骤1：检查是否已有SSH密钥
+
+```bash
+# 检查是否存在SSH密钥
+ls -al ~/.ssh
+
+# 应该看到类似以下文件：
+# id_ed25519      (私钥)
+# id_ed25519.pub  (公钥)
+# 或
+# id_rsa          (私钥，旧格式)
+# id_rsa.pub      (公钥，旧格式)
+```
+
+#### 步骤2：如果没有密钥，生成新的SSH密钥
+
+```bash
+# 生成ED25519格式的密钥（推荐，更安全）
+ssh-keygen -t ed25519 -C "your_email@example.com"
+
+# 如果系统不支持ED25519，使用RSA格式
+ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
+
+# 按提示操作：
+# 1. 按回车使用默认路径 (~/.ssh/id_ed25519)
+# 2. 设置密码（可选，但推荐设置）
+# 3. 再次确认密码
+```
+
+#### 步骤3：启动SSH代理并添加密钥
+
+```bash
+# macOS/Linux: 启动SSH代理
+eval "$(ssh-agent -s)"
+
+# 添加SSH密钥到代理
+ssh-add ~/.ssh/id_ed25519
+# 或如果是RSA格式：
+# ssh-add ~/.ssh/id_rsa
+
+# 查看已添加的密钥
+ssh-add -l
+```
+
+#### 步骤4：复制公钥到GitHub
+
+```bash
+# macOS: 直接复制到剪贴板
+pbcopy < ~/.ssh/id_ed25519.pub
+
+# Linux: 显示公钥内容，手动复制
+cat ~/.ssh/id_ed25519.pub
+
+# Windows (Git Bash): 复制到剪贴板
+cat ~/.ssh/id_ed25519.pub | clip
+```
+
+#### 步骤5：在GitHub上添加SSH密钥
+
+1. **登录GitHub**
+   - 访问 [github.com](https://github.com)
+   - 登录你的账号
+
+2. **进入SSH设置**
+   - 点击右上角头像 → **Settings**（设置）
+   - 左侧菜单选择 **SSH and GPG keys**（SSH和GPG密钥）
+
+3. **添加新密钥**
+   - 点击 **"New SSH key"**（新建SSH密钥）按钮
+   - **Title**（标题）：输入一个描述性名称，如 "MacBook Pro" 或 "工作电脑"
+   - **Key**（密钥）：粘贴刚才复制的公钥内容（以 `ssh-ed25519` 或 `ssh-rsa` 开头）
+   - 点击 **"Add SSH key"**（添加SSH密钥）
+
+4. **确认添加**
+   - 可能需要输入GitHub密码确认
+
+#### 步骤6：测试SSH连接
+
+```bash
+# 测试与GitHub的SSH连接
+ssh -T git@github.com
+
+# 首次连接会看到：
+# The authenticity of host 'github.com' can't be established.
+# 输入 yes 继续
+
+# 成功的话会看到：
+# Hi 你的用户名! You've successfully authenticated, but GitHub does not provide shell access.
+```
+
+#### 步骤7：配置远程仓库地址
+
+如果之前使用的是HTTPS地址，需要切换到SSH：
+
+```bash
+# 查看当前远程仓库地址
+git remote -v
+
+# 如果显示的是HTTPS地址，切换到SSH
+git remote set-url origin git@github.com:你的用户名/仓库名.git
+
+# 再次确认
+git remote -v
+```
+
+#### 步骤8：重新推送
+
+```bash
+# 现在应该可以正常推送了
+git push -u origin main
+```
+
+#### 常见问题解决
+
+**问题1：`remote origin already exists`（远程仓库已存在）**
+
+如果你想从SSH切换到HTTPS（或反之），需要先删除再添加：
+
+```bash
+# 方法1：修改现有远程仓库地址
+git remote set-url origin https://github.com/你的用户名/仓库名.git
+# 或
+git remote set-url origin git@github.com:你的用户名/仓库名.git
+
+# 方法2：删除后重新添加
+git remote remove origin
+git remote add origin https://github.com/你的用户名/仓库名.git
+```
+
+**问题2：多个SSH密钥管理**
+
+如果你有多个GitHub账号或需要管理多个密钥：
+
+```bash
+# 创建SSH配置文件
+nano ~/.ssh/config
+# 或
+vim ~/.ssh/config
+```
+
+添加以下内容：
+```
+# GitHub账号1
+Host github.com-account1
+    HostName github.com
+    User git
+    IdentityFile ~/.ssh/id_ed25519_account1
+
+# GitHub账号2
+Host github.com-account2
+    HostName github.com
+    User git
+    IdentityFile ~/.ssh/id_ed25519_account2
+```
+
+使用时：
+```bash
+# 账号1的仓库
+git remote set-url origin git@github.com-account1:用户名1/仓库名.git
+
+# 账号2的仓库
+git remote set-url origin git@github.com-account2:用户名2/仓库名.git
+```
+
+**问题3：SSH密钥密码忘记**
+
+如果设置了SSH密钥密码但忘记了：
+
+```bash
+# 方法1：重新生成密钥（需要重新添加到GitHub）
+ssh-keygen -t ed25519 -C "your_email@example.com"
+
+# 方法2：移除密码（不推荐，降低安全性）
+ssh-keygen -p -f ~/.ssh/id_ed25519
+# 输入旧密码，新密码留空
+```
+
+**问题4：仍然无法连接**
+
+如果以上步骤都完成但仍然无法连接：
+
+```bash
+# 1. 检查SSH密钥是否正确添加到代理
+ssh-add -l
+
+# 2. 详细调试SSH连接
+ssh -vT git@github.com
+# 查看详细输出，找出问题所在
+
+# 3. 检查GitHub上的密钥是否正确
+# 在GitHub设置中查看已添加的SSH密钥，确认公钥内容匹配
+
+# 4. 临时使用HTTPS方式（需要输入用户名和密码/Token）
+git remote set-url origin https://github.com/你的用户名/仓库名.git
+```
+
+#### 使用HTTPS作为备选方案
+
+如果SSH配置太复杂，可以暂时使用HTTPS方式：
+
+```bash
+# 切换到HTTPS地址
+git remote set-url origin https://github.com/你的用户名/仓库名.git
+
+# 推送时需要输入用户名和密码
+# 注意：从2021年8月起，GitHub不再接受密码，需要使用Personal Access Token
+```
+
+**获取Personal Access Token：**
+1. GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic)
+2. 点击 "Generate new token (classic)"
+3. 设置权限（至少勾选 `repo`）
+4. 生成后复制Token（只显示一次）
+5. 推送时，用户名输入GitHub用户名，密码输入Token
+
 ---
 
 ## 克隆和拉取特定分支
@@ -857,6 +1084,38 @@ A:
 
 ### Q: 如何重命名仓库？
 A: Settings → General → Repository name → 修改名称
+
+### Q: 推送时出现 `Permission denied (publickey)` 错误怎么办？
+A: 这是SSH密钥配置问题，按以下步骤解决：
+
+1. **检查SSH密钥是否存在**
+   ```bash
+   ls -al ~/.ssh
+   ```
+
+2. **如果没有密钥，生成新的**
+   ```bash
+   ssh-keygen -t ed25519 -C "your_email@example.com"
+   ```
+
+3. **复制公钥并添加到GitHub**
+   ```bash
+   # macOS
+   pbcopy < ~/.ssh/id_ed25519.pub
+   # 然后到 GitHub → Settings → SSH and GPG keys → New SSH key 粘贴
+   ```
+
+4. **测试连接**
+   ```bash
+   ssh -T git@github.com
+   ```
+
+5. **确保使用SSH地址**
+   ```bash
+   git remote set-url origin git@github.com:你的用户名/仓库名.git
+   ```
+
+详细步骤请参考[SSH密钥故障排除](#ssh密钥故障排除)章节。
 
 ### Q: 如何下载单个文件？
 A: 进入文件页面 → 点击 Raw → 右键保存
