@@ -119,7 +119,7 @@ git remote set-url origin git@github.com:你的用户名/仓库名.git
 
 #### 问题：`Permission denied (publickey)` 错误
 
-当你看到以下错误时：
+当看到以下错误时：
 ```
 git@github.com: Permission denied (publickey).
 fatal: Could not read from remote repository.
@@ -243,7 +243,7 @@ git push -u origin main
 
 **问题1：`remote origin already exists`（远程仓库已存在）**
 
-如果你想从SSH切换到HTTPS（或反之），需要先删除再添加：
+如果想从SSH切换到HTTPS（或反之），需要先删除再添加：
 
 ```bash
 # 方法1：修改现有远程仓库地址
@@ -258,7 +258,7 @@ git remote add origin https://github.com/你的用户名/仓库名.git
 
 **问题2：多个SSH密钥管理**
 
-如果你有多个GitHub账号或需要管理多个密钥：
+如果有多个GitHub账号或需要管理多个密钥：
 
 ```bash
 # 创建SSH配置文件
@@ -348,7 +348,7 @@ git remote set-url origin https://github.com/你的用户名/仓库名.git
 
 ### 场景说明
 
-当你需要克隆一个项目，但目标代码在某个特定分支上时，有以下几种方法：
+当需要克隆一个项目，但目标代码在某个特定分支上时，有以下几种方法：
 
 ### 方法一：克隆后切换到特定分支（推荐）
 
@@ -393,7 +393,7 @@ git checkout 18.0-stable
 
 ### 方法二：直接克隆特定分支（节省空间）
 
-如果你只需要某个分支的代码，可以只克隆该分支：
+如果只需要某个分支的代码，可以只克隆该分支：
 
 ```bash
 # 克隆特定分支（只下载该分支的代码）
@@ -456,7 +456,7 @@ git checkout -b 本地分支名 origin/远程分支名
 
 ### 拉取特定分支的最新更新
 
-如果你已经在某个分支上，想拉取最新代码：
+如果已经在某个分支上，想拉取最新代码：
 
 ```bash
 # 1. 确保在目标分支上
@@ -1156,7 +1156,5 @@ git diff HEAD~1  # 与上一个版本比较
 
 ---
 
-**祝你使用GitHub愉快！** 🎉
 
-如有问题，欢迎在仓库中创建Issue讨论。
 
