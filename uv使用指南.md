@@ -7,18 +7,19 @@
 ## 目录
 
 1. [安装与配置](#1-安装与配置)
-2. [Python 版本管理](#2-python-版本管理)
-3. [项目管理](#3-项目管理)
-4. [依赖管理](#4-依赖管理)
-5. [虚拟环境管理](#5-虚拟环境管理)
-6. [脚本管理](#6-脚本管理)
-7. [工具管理](#7-工具管理)
-8. [构建与发布](#8-构建与发布)
-9. [缓存管理](#9-缓存管理)
-10. [pip 兼容接口](#10-pip-兼容接口)
-11. [高级功能](#11-高级功能)
-12. [最佳实践](#12-最佳实践)
-13. [故障排除](#13-故障排除)
+2. [快速开始：实战流程](#2-快速开始实战流程)
+3. [Python 版本管理](#3-python-版本管理)
+4. [项目管理](#4-项目管理)
+5. [依赖管理](#5-依赖管理)
+6. [虚拟环境管理](#6-虚拟环境管理)
+7. [脚本管理](#7-脚本管理)
+8. [工具管理](#8-工具管理)
+9. [构建与发布](#9-构建与发布)
+10. [缓存管理](#10-缓存管理)
+11. [pip 兼容接口](#11-pip-兼容接口)
+12. [高级功能](#12-高级功能)
+13. [最佳实践](#13-最佳实践)
+14. [故障排除](#14-故障排除)
 
 ---
 
@@ -159,7 +160,354 @@ concurrency = 10
 
 ---
 
-## 2. Python 版本管理
+## 2. 快速开始：实战流程
+
+本章节提供了一个完整的实战流程，帮助您快速上手使用 `uv` 管理 Python 项目。按照以下步骤操作，您将能够创建一个完整的 Python 项目并管理其依赖。
+
+### 2.1 使用 uv 管理 Python 项目的完整流程
+
+为确保 Python 程序可以正常运行，需要完成以下两个核心任务：
+1. **确定 Python 版本**
+2. **解决依赖问题**
+
+#### 步骤一：确定 Python 版本
+
+**1.1 查看所有可用的 Python 版本**
+
+```bash
+# 查看 uv 支持的所有 Python 版本
+uv python list
+```
+
+**1.2 安装特定版本的 Python**
+
+```bash
+# 安装指定版本的 Python（注意：直接使用版本号，不需要 cpython- 前缀）
+uv python install 3.12
+uv python install 3.11.5
+uv python install 3.10.12
+```
+
+**1.3 使用特定版本的 Python 运行脚本**
+
+```bash
+# 使用指定版本的 Python 临时运行一个文件
+uv run --python 3.12 script.py
+
+# 使用指定版本的 Python 进入交互式界面
+uv run --python 3.12 python
+
+# 使用 PyPy（如果之前没有下载过，会自动安装）
+uv run --python pypy python
+```
+
+#### 步骤二：创建 uv 项目并解决依赖
+
+**2.1 创建 uv 项目**
+
+```bash
+# 创建项目并指定 Python 版本
+uv init -p 3.12
+
+# 或创建项目时指定项目名称
+uv init my-project -p 3.12
+```
+
+创建项目后会生成以下文件结构：
+
+```
+my-project/
+├── hello.py              # 示例代码文件（可删除）
+├── .python-version       # Python 版本信息文件（可直接修改以更换版本）
+├── .venv/                # uv 自动创建的虚拟环境目录
+├── pyproject.toml        # 项目配置文件（依赖记录在这里）
+└── README.md             # 项目说明文件
+```
+
+**重要文件说明：**
+- `.python-version`：记录了项目使用的 Python 版本，如需更换版本，可直接修改此文件
+- `pyproject.toml`：项目的核心配置文件，所有依赖都会被记录在这里
+- `.venv`：项目的虚拟环境目录，包含所有已安装的包
+
+**2.2 查看项目依赖关系**
+
+```bash
+# 查看工程内所有库之间的依赖关系树
+uv tree
+
+# 查看特定包的依赖关系
+uv tree requests
+```
+
+**2.3 创建并激活虚拟环境（可选）**
+
+如果您需要创建独立的虚拟环境（而不是使用项目自动创建的 `.venv`）：
+
+```bash
+# 创建名为 ym_study 的虚拟环境
+uv venv ym_study
+
+# 激活虚拟环境（macOS/Linux）
+source ym_study/bin/activate
+
+# 激活虚拟环境（Windows PowerShell）
+ym_study\Scripts\activate
+
+# 激活虚拟环境（Windows CMD）
+ym_study\Scripts\activate.bat
+```
+
+**2.4 从 requirements.txt 安装依赖**
+
+如果项目中有 `requirements.txt` 文件，可以使用以下命令安装：
+
+```bash
+# 在激活的虚拟环境中安装依赖
+uv pip install -r requirements.txt
+
+# 或直接使用项目环境（无需激活）
+uv run pip install -r requirements.txt
+```
+
+**2.5 添加项目依赖**
+
+当代码中提示找不到某些库时，可以使用以下命令安装：
+
+```bash
+# 添加依赖到项目（会自动安装并更新 pyproject.toml）
+uv add requests
+
+# 添加多个依赖
+uv add requests flask fastapi
+
+# 添加开发依赖（不会被打包）
+uv add --dev pytest black ruff
+```
+
+**重要提示：**
+- 使用 `uv add` 命令时，uv 不仅会下载库文件，还会自动创建或更新项目的虚拟环境（`.venv` 目录）
+- 在 VSCode 中，点击右下角的 Python 解释器选择器，选择项目中的 `.venv` 虚拟环境，即可解决导入错误
+- 添加依赖后，可以在终端使用 `uv run script.py` 运行脚本
+
+**2.6 运行项目脚本**
+
+```bash
+# 使用项目环境运行 Python 脚本
+uv run script.py
+
+# 运行并传递参数
+uv run script.py --arg1 value1
+
+# 运行任意命令
+uv run pytest
+uv run python -m unittest
+```
+
+### 2.2 安装和管理工具
+
+#### 方法一：作为项目依赖安装（推荐用于项目特定工具）
+
+```bash
+# 添加工具作为开发依赖（避免打包时包含）
+uv add ruff --dev
+
+# 从依赖中移除工具
+uv remove ruff --dev
+```
+
+#### 方法二：作为全局工具安装（推荐用于通用工具）
+
+```bash
+# 安装工具到系统（整个系统可用）
+uv tool install ruff
+
+# 查看系统中所有已安装的工具
+uv tool list
+
+# 卸载工具
+uv tool uninstall ruff
+
+# 更新工具
+uv tool update ruff
+```
+
+#### 方法三：临时运行工具（无需安装）
+
+```bash
+# 临时运行工具（自动创建临时环境）
+uvx ruff check .
+uvx black --check .
+```
+
+**工具使用示例：**
+
+```bash
+# 使用 ruff 检查代码规范
+uv add ruff --dev
+uv run ruff check .
+
+# 或使用全局安装的工具
+uv tool install ruff
+ruff check .
+
+# 或临时运行
+uvx ruff check .
+```
+
+### 2.3 打包和发布项目
+
+#### 步骤一：配置项目脚本入口点
+
+在 `pyproject.toml` 文件中添加 `[project.scripts]` 部分：
+
+```toml
+[project.scripts]
+# 格式：命令名 = "模块路径:函数名"
+ai = "ai:main"
+my-cli = "my_package.cli:main"
+hello = "hello:say_hello"
+```
+
+**示例：**
+
+假设您有一个 `ai.py` 文件，其中包含 `main()` 函数：
+
+```python
+# ai.py
+def main():
+    print("Hello from AI!")
+
+if __name__ == "__main__":
+    main()
+```
+
+在 `pyproject.toml` 中配置：
+
+```toml
+[project.scripts]
+ai = "ai:main"
+```
+
+配置后，安装项目后就可以直接使用 `ai` 命令了。
+
+#### 步骤二：构建项目
+
+```bash
+# 构建项目为 whl 文件（轮子格式）
+uv build
+
+# 构建后会生成 dist/ 目录，包含构建好的分发包
+```
+
+#### 步骤三：使用打包的项目
+
+构建完成后，可以通过以下方式使用：
+
+```bash
+# 方法一：使用 uv tool（全局安装）
+uv tool install ./dist/my_project-0.1.0-py3-none-any.whl
+
+# 方法二：作为依赖添加到其他项目
+uv add ./dist/my_project-0.1.0-py3-none-any.whl
+
+# 方法三：直接安装到当前环境
+uv pip install ./dist/my_project-0.1.0-py3-none-any.whl
+```
+
+安装后，就可以使用配置的命令名（如 `ai`）来运行脚本了。
+
+### 2.4 完整项目创建流程总结
+
+创建一个新项目并使用 uv 管理的完整步骤如下：
+
+**第一步：创建项目**
+
+```bash
+# 在终端中使用以下命令创建 uv 项目
+uv init my-project -p 3.12
+cd my-project
+```
+
+**第二步：添加依赖**
+
+```bash
+# 添加生产依赖
+uv add requests flask
+
+# 添加开发依赖
+uv add --dev pytest black ruff
+```
+
+**第三步：编写代码**
+
+创建您的源代码文件，例如 `main.py`：
+
+```python
+import requests
+
+def main():
+    response = requests.get("https://api.github.com")
+    print(response.status_code)
+
+if __name__ == "__main__":
+    main()
+```
+
+**第四步：运行项目**
+
+```bash
+# 运行脚本
+uv run main.py
+
+# 或运行测试
+uv run pytest
+```
+
+**第五步：配置脚本入口点（可选）**
+
+在 `pyproject.toml` 中添加：
+
+```toml
+[project.scripts]
+my-app = "main:main"
+```
+
+**第六步：构建和发布（可选）**
+
+```bash
+# 构建项目
+uv build
+
+# 发布到 PyPI（需要配置凭证）
+uv publish
+```
+
+### 2.5 常见问题解决
+
+**问题 1：VSCode 中导入库报错**
+
+**解决方案：**
+1. 确保已使用 `uv add` 安装了依赖
+2. 点击 VSCode 右下角的 Python 解释器选择器
+3. 选择项目中的 `.venv/bin/python`（macOS/Linux）或 `.venv\Scripts\python.exe`（Windows）
+
+**问题 2：如何更换项目的 Python 版本**
+
+**解决方案：**
+1. 直接编辑 `.python-version` 文件，修改版本号
+2. 或使用命令：`uv python pin 3.11`
+3. 重新同步依赖：`uv sync`
+
+**问题 3：如何从现有项目迁移到 uv**
+
+**解决方案：**
+1. 在项目目录运行：`uv init`
+2. 如果有 `requirements.txt`，运行：`uv pip install -r requirements.txt`
+3. 然后使用 `uv pip freeze` 生成新的依赖列表，或直接使用 `uv add` 逐个添加
+
+---
+
+## 3. Python 版本管理
 
 `uv` 提供了强大的 Python 版本管理功能，可以自动下载和管理多个 Python 版本。
 
@@ -246,7 +594,7 @@ uv python dir
 
 ---
 
-## 3. 项目管理
+## 4. 项目管理
 
 `uv` 支持创建和管理带有 `pyproject.toml` 的 Python 项目，类似于 Poetry 和 PDM。
 
@@ -402,7 +750,7 @@ uv project dependencies
 
 ---
 
-## 4. 依赖管理
+## 5. 依赖管理
 
 ### 4.1 添加依赖
 
@@ -513,9 +861,232 @@ uv remove --optional dev pytest
 
 ---
 
-## 5. 虚拟环境管理
+## 6. 虚拟环境管理
 
-### 5.1 创建虚拟环境
+### 6.1 虚拟环境的存储位置
+
+**默认存储位置：**
+
+当您使用 `uv` 创建项目或添加依赖时，虚拟环境默认存储在**项目目录**下：
+
+- **项目自动创建的虚拟环境**：`项目目录/.venv/`
+- **手动创建的虚拟环境**：取决于您指定的路径
+
+**示例：**
+
+```bash
+# 在项目 my-project 中
+cd my-project
+uv init -p 3.12
+# 虚拟环境位置：my-project/.venv/
+
+# 手动创建虚拟环境
+uv venv my-venv
+# 虚拟环境位置：my-project/my-venv/
+
+# 在指定路径创建
+uv venv ~/venvs/project1
+# 虚拟环境位置：~/venvs/project1/
+```
+
+**重要提示：**
+- 每个项目的虚拟环境默认是**独立的**，存储在各自的项目目录中
+- 虚拟环境目录通常包含大量文件，建议将其添加到 `.gitignore` 中
+- 如果删除项目目录，对应的虚拟环境也会被删除
+
+### 6.2 查看虚拟环境位置
+
+**方法一：查看当前项目的虚拟环境**
+
+```bash
+# 在项目目录中，虚拟环境通常在 .venv 目录
+ls -la .venv  # Linux/macOS
+dir .venv     # Windows
+
+# 查看虚拟环境的 Python 路径
+.venv/bin/python --version  # Linux/macOS
+.venv\Scripts\python --version  # Windows
+```
+
+**方法二：查找所有项目中的虚拟环境**
+
+```bash
+# 在当前目录及子目录中查找所有 .venv 目录
+find . -name ".venv" -type d
+
+# 在指定目录中查找（例如主目录下的所有项目）
+find ~/projects -name ".venv" -type d
+
+# 查找所有虚拟环境目录（包括自定义名称）
+find ~/projects -type d -name "venv" -o -name ".venv" -o -name "*env"
+
+# Windows PowerShell 中查找
+Get-ChildItem -Path . -Filter ".venv" -Recurse -Directory
+```
+
+**方法三：查看项目配置中的虚拟环境信息**
+
+```bash
+# 查看 pyproject.toml 中的配置
+cat pyproject.toml | grep -A 5 "\[tool.uv\]"
+
+# 或直接查看文件
+cat pyproject.toml
+```
+
+**方法四：使用环境变量查看**
+
+```bash
+# 查看当前激活的虚拟环境
+echo $VIRTUAL_ENV  # Linux/macOS
+echo %VIRTUAL_ENV%  # Windows CMD
+$env:VIRTUAL_ENV    # Windows PowerShell
+```
+
+### 6.3 统一管理所有项目的虚拟环境
+
+如果您希望将所有项目的虚拟环境集中管理，可以采用以下方法：
+
+**方法一：创建统一的虚拟环境目录**
+
+```bash
+# 1. 创建统一的虚拟环境存储目录
+mkdir -p ~/.venvs  # Linux/macOS
+mkdir %USERPROFILE%\.venvs  # Windows
+
+# 2. 为每个项目在统一目录下创建虚拟环境
+cd project1
+uv venv ~/.venvs/project1
+
+cd ../project2
+uv venv ~/.venvs/project2
+
+# 3. 激活时指定路径
+source ~/.venvs/project1/bin/activate  # Linux/macOS
+~/.venvs/project1/Scripts/activate     # Windows
+```
+
+**方法二：使用脚本管理所有虚拟环境**
+
+创建一个管理脚本 `list-venvs.sh`（Linux/macOS）：
+
+```bash
+#!/bin/bash
+# 列出所有找到的虚拟环境
+
+echo "=== 项目虚拟环境列表 ==="
+find ~/projects -name ".venv" -type d | while read venv; do
+    project_dir=$(dirname "$venv")
+    project_name=$(basename "$project_dir")
+    python_version=$("$venv/bin/python" --version 2>&1)
+    echo "项目: $project_name"
+    echo "  路径: $venv"
+    echo "  Python: $python_version"
+    echo ""
+done
+```
+
+创建 PowerShell 脚本 `list-venvs.ps1`（Windows）：
+
+```powershell
+# 列出所有找到的虚拟环境
+Write-Host "=== 项目虚拟环境列表 ===" -ForegroundColor Green
+
+Get-ChildItem -Path $HOME\projects -Filter ".venv" -Recurse -Directory | ForEach-Object {
+    $projectDir = $_.Parent.FullName
+    $projectName = $_.Parent.Name
+    $pythonVersion = & "$($_.FullName)\Scripts\python.exe" --version 2>&1
+    Write-Host "项目: $projectName" -ForegroundColor Yellow
+    Write-Host "  路径: $($_.FullName)"
+    Write-Host "  Python: $pythonVersion"
+    Write-Host ""
+}
+```
+
+**方法三：配置环境变量统一管理**
+
+在 `~/.bashrc` 或 `~/.zshrc` 中添加（Linux/macOS）：
+
+```bash
+# 设置统一的虚拟环境目录
+export UV_VENV_DIR="$HOME/.venvs"
+
+# 创建便捷函数
+venv-list() {
+    find "$HOME/.venvs" -maxdepth 1 -type d | grep -v "^$HOME/.venvs$"
+}
+
+venv-activate() {
+    source "$HOME/.venvs/$1/bin/activate"
+}
+```
+
+### 6.4 在新项目中使用已有的虚拟环境
+
+**⚠️ 重要提示：** 共享虚拟环境可能导致不同项目之间的依赖冲突。建议仅在以下情况使用：
+- 项目依赖完全兼容
+- 临时测试或开发
+- 明确了解可能的风险
+
+**方法一：通过环境变量指定虚拟环境**
+
+```bash
+# 设置环境变量指向已有的虚拟环境
+export UV_PROJECT_ENVIRONMENT="/path/to/existing/venv"
+
+# 在新项目中使用
+cd new-project
+uv sync  # 会在指定的虚拟环境中安装依赖
+```
+
+**方法二：在 pyproject.toml 中配置**
+
+在 `pyproject.toml` 中添加配置：
+
+```toml
+[tool.uv]
+# 指定使用已有的虚拟环境路径
+environment = "/path/to/existing/venv"
+```
+
+**方法三：使用符号链接（推荐用于统一管理）**
+
+```bash
+# 1. 创建统一的虚拟环境
+uv venv ~/.venvs/shared-venv --python 3.12
+
+# 2. 在新项目中创建符号链接
+cd new-project
+ln -s ~/.venvs/shared-venv .venv  # Linux/macOS
+
+# Windows 中需要使用管理员权限创建符号链接
+mklink /D .venv %USERPROFILE%\.venvs\shared-venv  # Windows CMD
+New-Item -ItemType SymbolicLink -Path .venv -Target ~/.venvs/shared-venv  # PowerShell
+```
+
+**方法四：复制虚拟环境（不推荐，但更安全）**
+
+```bash
+# 复制已有的虚拟环境到新项目
+cp -r /path/to/existing/venv new-project/.venv  # Linux/macOS
+xcopy /E /I /H existing\venv new-project\.venv  # Windows
+```
+
+**方法五：导出和导入依赖**
+
+更安全的方式是导出依赖配置，而不是共享虚拟环境：
+
+```bash
+# 在旧项目中导出依赖
+cd old-project
+uv pip freeze > requirements.txt
+
+# 在新项目中安装相同的依赖
+cd new-project
+uv pip install -r ../old-project/requirements.txt
+```
+
+### 6.5 创建虚拟环境
 
 ```bash
 # 在当前目录创建虚拟环境
@@ -539,7 +1110,7 @@ uv venv --without-pip
 uv venv --symlinks
 ```
 
-### 5.2 激活虚拟环境
+### 6.6 激活虚拟环境
 
 **Linux/macOS：**
 ```bash
@@ -551,7 +1122,7 @@ source .venv/bin/activate
 .venv\Scripts\activate
 ```
 
-### 5.3 使用虚拟环境（无需激活）
+### 6.7 使用虚拟环境（无需激活）
 
 ```bash
 # 直接使用虚拟环境中的 Python
@@ -562,7 +1133,7 @@ source .venv/bin/activate
 uv run python script.py
 ```
 
-### 5.4 删除虚拟环境
+### 6.8 删除虚拟环境
 
 ```bash
 # 直接删除目录
@@ -570,16 +1141,74 @@ rm -rf .venv  # Linux/macOS
 rmdir /s .venv  # Windows
 ```
 
-### 5.5 列出虚拟环境
+### 6.9 虚拟环境管理最佳实践
+
+**1. 项目隔离原则**
+- ✅ 每个项目使用独立的虚拟环境
+- ✅ 虚拟环境存储在项目目录中（`.venv`）
+- ❌ 避免在多个项目间共享虚拟环境
+
+**2. 目录管理**
+```bash
+# 项目结构示例
+my-project/
+├── .venv/           # 虚拟环境（添加到 .gitignore）
+├── .python-version  # Python 版本
+├── pyproject.toml   # 项目配置
+└── src/             # 源代码
+```
+
+**3. 清理未使用的虚拟环境**
+
+创建清理脚本 `cleanup-venvs.sh`：
 
 ```bash
-# uv 不直接提供此功能，但可以通过查找 .venv 目录实现
-find . -name ".venv" -type d
+#!/bin/bash
+# 清理已删除项目对应的虚拟环境
+
+VENV_DIR="$HOME/.venvs"
+
+if [ -d "$VENV_DIR" ]; then
+    for venv in "$VENV_DIR"/*; do
+        if [ -d "$venv" ]; then
+            venv_name=$(basename "$venv")
+            # 检查对应的项目是否还存在
+            if [ ! -d "$HOME/projects/$venv_name" ]; then
+                echo "删除未使用的虚拟环境: $venv_name"
+                rm -rf "$venv"
+            fi
+        fi
+    done
+fi
+```
+
+**4. 虚拟环境大小管理**
+
+```bash
+# 查看虚拟环境大小
+du -sh .venv  # Linux/macOS
+dir .venv /s  # Windows
+
+# 清理虚拟环境中的缓存
+find .venv -type d -name "__pycache__" -exec rm -r {} +  # Linux/macOS
+```
+
+**5. 备份虚拟环境配置**
+
+虽然不需要备份整个虚拟环境，但应该备份依赖配置：
+
+```bash
+# 导出依赖列表
+uv pip freeze > requirements.txt
+uv lock  # 生成锁文件
+
+# 提交到版本控制
+git add pyproject.toml uv.lock requirements.txt
 ```
 
 ---
 
-## 6. 脚本管理
+## 7. 脚本管理
 
 `uv` 允许您执行独立的 Python 脚本，并自动管理其依赖。
 
@@ -628,7 +1257,7 @@ dependencies = ["requests", "beautifulsoup4"]
 
 ---
 
-## 7. 工具管理
+## 8. 工具管理
 
 `uv` 提供了专门的接口用于运行和安装发布到 Python 包索引的工具。
 
@@ -745,7 +1374,7 @@ uvx twine upload dist/*
 
 ---
 
-## 8. 构建与发布
+## 9. 构建与发布
 
 ### 8.1 构建项目
 
@@ -817,7 +1446,7 @@ export UV_PUBLISH_PASSWORD="password"
 
 ---
 
-## 9. 缓存管理
+## 10. 缓存管理
 
 `uv` 使用缓存来加速包下载和安装。
 
@@ -859,7 +1488,7 @@ cache-size-limit = "10GB"
 
 ---
 
-## 10. pip 兼容接口
+## 11. pip 兼容接口
 
 `uv` 提供了与 `pip` 类似的接口，方便手动管理环境和包。
 
@@ -1023,7 +1652,7 @@ uv pip search requests
 
 ---
 
-## 11. 高级功能
+## 12. 高级功能
 
 ### 11.1 工作区（Workspace）
 
@@ -1153,7 +1782,7 @@ export UV_OFFLINE=1
 
 ---
 
-## 12. 最佳实践
+## 13. 最佳实践
 
 ### 12.1 项目初始化
 
@@ -1247,7 +1876,7 @@ uv sync
 
 ---
 
-## 13. 故障排除
+## 14. 故障排除
 
 ### 13.1 常见问题
 
@@ -1341,7 +1970,7 @@ uv python dir
 
 ---
 
-## 14. 命令速查表
+## 15. 命令速查表
 
 ### 14.1 项目管理
 
@@ -1417,7 +2046,7 @@ uv python dir
 
 ---
 
-## 15. 与其他工具对比
+## 16. 与其他工具对比
 
 ### 15.1 vs pip
 
@@ -1450,7 +2079,7 @@ uv python dir
 
 ---
 
-## 16. 总结
+## 17. 总结
 
 `uv` 是一个功能强大、性能卓越的 Python 包管理器和项目管理工具。它结合了 pip 的简单性、Poetry 的项目管理能力和 PDM 的速度，同时提供了独特的 Python 版本管理功能。
 
